@@ -33,7 +33,8 @@ CLI_ROOT_COMMANDS = {
     "pip", "pip3", "npm", "npx", "pnpm", "yarn", "git", "docker", "podman",
     "curl", "wget", "make", "cmake", "python", "python3", "cargo", "go", "apt",
     "apt-get", "brew", "kubectl", "helm", "aws", "gcloud", "terraform", "uv",
-    "poetry", "conda", "jupyter", "node", "systemctl", "ssh", "tar", "grep"
+    "poetry", "conda", "jupyter", "node", "systemctl", "ssh", "tar", "grep",
+    "uvicorn", "gunicorn", "alembic", "prisma", "next", "vite"
 }
 
 # Known file extensions representing paths/code files

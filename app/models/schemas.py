@@ -141,3 +141,56 @@ class DiagnosticResponse(BaseModel):
     anchor: str | None
     confidence: float
 
+
+class MonitorRegisterRequest(BaseModel):
+    doc_id: str
+    url: str
+    content_hash: str
+    etag: str | None = None
+
+
+class MonitorCheckResponse(BaseModel):
+    doc_id: str
+    has_changed: bool
+    old_hash: str
+    new_hash: str
+    added_headings: list[str]
+    removed_headings: list[str]
+    stale_sections_invalidated: int
+
+
+class TranscribeResponse(BaseModel):
+    text: str
+    language: str
+    confidence: float
+    duration_seconds: float
+
+
+class TTSRequest(BaseModel):
+    text: str
+    lang: str = "kn"
+    speed: float = 1.0
+
+
+class TTSResponse(BaseModel):
+    audio_base64: str
+    format: str
+    sample_rate: int
+    duration_ms: int
+    cue_points: list[dict[str, Any]]
+
+
+class QARequest(BaseModel):
+    doc_id: str
+    question: str
+    target_lang: str = "en"
+
+
+class QAResponse(BaseModel):
+    answer: str
+    citations: list[dict[str, Any]]
+    verified_commands: list[str]
+    abstained: bool
+    confidence: float
+
+

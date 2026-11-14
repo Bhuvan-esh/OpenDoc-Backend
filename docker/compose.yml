@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: opendocs-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=postgresql://opendocs:opendocs_secret@postgres:5432/opendocs_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - opendocs-net
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: opendocs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: opendocs
+      POSTGRES_PASSWORD: opendocs_secret
+      POSTGRES_DB: opendocs_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opendocs -d opendocs_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - opendocs-net
+
+volumes:
+  pgdata:
+
+networks:
+  opendocs-net:
+    driver: bridge

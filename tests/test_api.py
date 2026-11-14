@@ -114,6 +114,29 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(diag_res.json()["exception_type"], "ModuleNotFoundError")
         self.assertEqual(diag_res.json()["missing_entity"], "fastapi")
 
+    def test_voice_and_qa_and_monitor_endpoints(self):
+        # 1. Transcribe audio
+        trans_res = self.client.post("/api/speech/transcribe")
+        self.assertEqual(trans_res.status_code, 200)
+        self.assertIsNotNone(trans_res.json()["text"])
+
+        # 2. TTS synthesis
+        tts_res = self.client.post(
+            "/api/tts",
+            json={"text": "Run pip install to start.", "lang": "kn"},
+        )
+        self.assertEqual(tts_res.status_code, 200)
+        self.assertIsNotNone(tts_res.json()["audio_base64"])
+        self.assertTrue(len(tts_res.json()["cue_points"]) >= 1)
+
+        # 3. Monitor register
+        mon_res = self.client.post(
+            "/api/monitor/register",
+            json={"doc_id": "api_doc_test", "url": "mock://api.test", "content_hash": "abc"},
+        )
+        self.assertEqual(mon_res.status_code, 201)
+
+
 
 
 if __name__ == "__main__":
