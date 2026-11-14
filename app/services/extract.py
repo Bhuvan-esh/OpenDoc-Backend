@@ -59,6 +59,7 @@ class DocumentExtractor:
         root = DocAST.create(kind="root", doc_id=doc_id, ordinal=0)
 
         current_heading_path: list[str] = []
+        current_heading_anchor: str | None = None
         ordinal = 1
 
         # Walk through top-level block elements
@@ -80,6 +81,7 @@ class DocumentExtractor:
                 while len(current_heading_path) >= level:
                     current_heading_path.pop()
                 current_heading_path.append(heading_text)
+                current_heading_anchor = anchor
 
                 node = DocAST.create(
                     kind="heading",
@@ -104,7 +106,7 @@ class DocumentExtractor:
                     doc_id=doc_id,
                     ordinal=ordinal,
                     text=code_text,
-                    anchor=anchor,
+                    anchor=anchor or current_heading_anchor,
                     heading_path=tuple(current_heading_path),
                     hard_protected=True,
                 )
@@ -123,7 +125,7 @@ class DocumentExtractor:
                     doc_id=doc_id,
                     ordinal=ordinal,
                     text=para_text,
-                    anchor=anchor,
+                    anchor=anchor or current_heading_anchor,
                     heading_path=tuple(current_heading_path),
                     hard_protected=is_hard,
                 )

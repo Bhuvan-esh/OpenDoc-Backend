@@ -108,3 +108,36 @@ class MetricsResponse(BaseModel):
     mode_b_count: int
     failed_count: int
     preservation_rate: float
+
+
+class SandboxRunRequest(BaseModel):
+    code: str = Field(..., description="Source code snippet to execute")
+    language: Literal["python", "bash", "javascript"] = "python"
+    timeout_seconds: float = Field(5.0, ge=1.0, le=30.0)
+
+
+class SandboxRunResponse(BaseModel):
+    stdout: str
+    stderr: str
+    exit_code: int
+    execution_ms: int
+    timed_out: bool
+    language: str
+    is_sandboxed: bool
+
+
+class DiagnosticRequest(BaseModel):
+    doc_id: str
+    error_log: str
+    failed_command: str | None = None
+
+
+class DiagnosticResponse(BaseModel):
+    exception_type: str
+    missing_entity: str | None
+    diagnosis: str
+    recommended_fix_command: str | None
+    cited_section: str
+    anchor: str | None
+    confidence: float
+

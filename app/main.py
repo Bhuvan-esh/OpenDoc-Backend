@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.documents import router as documents_router
 from app.api.learning import router as learning_router
 from app.api.proof import router as proof_router
+from app.api.sandbox import router as sandbox_router
 
 app = FastAPI(
     title="OpenDocs Voice & Learning Engine",
@@ -15,7 +16,7 @@ app = FastAPI(
         "High-assurance, code-safe, multimodal open-source documentation assistant "
         "and AI-powered personalized learning platform."
     ),
-    version="0.2.0",
+    version="0.3.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -33,6 +34,8 @@ app.add_middleware(
 app.include_router(documents_router)
 app.include_router(learning_router)
 app.include_router(proof_router)
+app.include_router(sandbox_router)
+
 
 
 @app.get("/", tags=["Health & Info"])

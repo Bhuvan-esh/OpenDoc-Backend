@@ -94,6 +94,27 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIsNotNone(proof_res.json()["merkle_root"])
         self.assertIsNotNone(proof_res.json()["signature"])
 
+    def test_sandbox_and_diagnostics_endpoints(self):
+        # Test code execution
+        code_res = self.client.post(
+            "/api/sandbox/run",
+            json={"language": "python", "code": "print('Test Sandbox API')", "timeout_seconds": 5.0},
+        )
+        self.assertEqual(code_res.status_code, 200)
+        self.assertEqual(code_res.json()["exit_code"], 0)
+        self.assertIn("Test Sandbox API", code_res.json()["stdout"])
+
+        # Test error diagnostic endpoint
+        err_log = "ModuleNotFoundError: No module named 'fastapi'"
+        diag_res = self.client.post(
+            "/api/diagnostics/error",
+            json={"doc_id": "dummy_doc", "error_log": err_log},
+        )
+        self.assertEqual(diag_res.status_code, 200)
+        self.assertEqual(diag_res.json()["exception_type"], "ModuleNotFoundError")
+        self.assertEqual(diag_res.json()["missing_entity"], "fastapi")
+
+
 
 if __name__ == "__main__":
     unittest.main()
