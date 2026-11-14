@@ -481,3 +481,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 Interactive documentation will be available at:
 `http://localhost:8000/docs` (Swagger UI) and `http://localhost:8000/redoc`.
+
+---
+
+## Authors & Credits
+
+**System Architecture:** J Bhuvanesh, Anusha A
+
