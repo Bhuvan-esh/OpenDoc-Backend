@@ -59,6 +59,9 @@ class UpstreamMonitorService:
         if force_html is not None:
             new_content = force_html
             new_hash = hashlib.sha256(new_content.encode("utf-8")).hexdigest()
+        elif url.startswith("http://demo.local") or url.startswith("mock://"):
+            new_content = "<html><body><h1>FastAPI Setup</h1><h2>Advanced Setup</h2><p>Run pip install fastapi to proceed.</p><pre>pip install uvicorn</pre></body></html>"
+            new_hash = hashlib.sha256(new_content.encode("utf-8")).hexdigest()
         else:
             fetch_res = await FetchGuard.fetch(url)
             new_content = fetch_res.content.decode("utf-8", errors="replace")

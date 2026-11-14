@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
+import threading
 from typing import Any
 from app.core.docast import DocAST
 from app.core.learning import Flashcard, QuizItem
@@ -23,23 +23,23 @@ class InMemoryStore:
         self.flashcards: dict[str, list[Flashcard]] = {}            # key: doc_id
         self.quizzes: dict[str, list[QuizItem]] = {}                # key: doc_id
         self.user_progress: dict[str, dict[str, Any]] = {}          # key: f"{user_token}:{doc_id}"
-        self.lock = asyncio.Lock()
+        self.lock = threading.Lock()
 
     async def save_document(self, doc_id: str, doc_data: dict[str, Any]) -> None:
-        async with self.lock:
+        with self.lock:
             self.documents[doc_id] = doc_data
 
     async def get_document(self, doc_id: str) -> dict[str, Any] | None:
         return self.documents.get(doc_id)
 
     async def save_job(self, job_id: str, job_data: dict[str, Any]) -> None:
-        async with self.lock:
+        with self.lock:
             self.jobs[job_id] = job_data
             if job_id not in self.job_events:
                 self.job_events[job_id] = []
 
     async def add_job_event(self, job_id: str, event: dict[str, Any]) -> None:
-        async with self.lock:
+        with self.lock:
             if job_id in self.job_events:
                 self.job_events[job_id].append(event)
 
@@ -47,7 +47,7 @@ class InMemoryStore:
         return self.job_events.get(job_id, [])
 
     async def save_ast(self, doc_id: str, ast: DocAST) -> None:
-        async with self.lock:
+        with self.lock:
             self.doc_asts[doc_id] = ast
 
     async def get_ast(self, doc_id: str) -> DocAST | None:
@@ -55,7 +55,7 @@ class InMemoryStore:
 
     async def save_content(self, doc_id: str, lang: str, paras: list[AlignedParagraphItem]) -> None:
         key = f"{doc_id}:{lang}"
-        async with self.lock:
+        with self.lock:
             self.paragraphs[key] = paras
 
     async def get_content(self, doc_id: str, lang: str) -> list[AlignedParagraphItem] | None:
@@ -64,7 +64,7 @@ class InMemoryStore:
 
     async def save_proof(self, doc_id: str, lang: str, proof: PreservationProof) -> None:
         key = f"{doc_id}:{lang}"
-        async with self.lock:
+        with self.lock:
             self.proofs[key] = proof
 
     async def get_proof(self, doc_id: str, lang: str) -> PreservationProof | None:
@@ -72,14 +72,14 @@ class InMemoryStore:
         return self.proofs.get(key)
 
     async def save_flashcards(self, doc_id: str, cards: list[Flashcard]) -> None:
-        async with self.lock:
+        with self.lock:
             self.flashcards[doc_id] = cards
 
     async def get_flashcards(self, doc_id: str) -> list[Flashcard]:
         return self.flashcards.get(doc_id, [])
 
     async def save_quizzes(self, doc_id: str, quizzes: list[QuizItem]) -> None:
-        async with self.lock:
+        with self.lock:
             self.quizzes[doc_id] = quizzes
 
     async def get_quizzes(self, doc_id: str) -> list[QuizItem]:
@@ -94,7 +94,7 @@ class InMemoryStore:
         score: float | None = None,
     ) -> dict[str, Any]:
         key = f"{user_token}:{doc_id}"
-        async with self.lock:
+        with self.lock:
             if key not in self.user_progress:
                 self.user_progress[key] = {
                     "completed_sections": set(),

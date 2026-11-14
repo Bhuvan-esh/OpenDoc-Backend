@@ -3,11 +3,22 @@
 from __future__ import annotations
 
 from typing import Any, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, AnyHttpUrl
 
 
 class DocumentCreateRequest(BaseModel):
-    url: str = Field(..., description="Target documentation URL to ingest and verify")
+    url: str = Field(..., description="Target documentation URL to ingest and verify (must be http/https)")
+
+    @field_validator("url")
+    @classmethod
+    def url_must_not_be_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("URL must not be empty")
+        # Allow mock:// only for internal testing; real URLs must be http/https
+        if not (v.startswith("http://") or v.startswith("https://") or v.startswith("mock://")):
+            raise ValueError("URL must start with http:// or https://")
+        return v
 
 
 class DocumentCreateResponse(BaseModel):

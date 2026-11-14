@@ -1,10 +1,24 @@
 """Unit tests for the Upstream Documentation Monitoring service."""
 
 import asyncio
+import sys
 import unittest
 from app.services.extract import DocumentExtractor
 from app.services.monitor import UpstreamMonitorService
 from app.services.store import store
+
+# Windows: use SelectorEventLoop to avoid WinError with asyncio.run() in unittest
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+def run(coro):
+    """Run coroutine in a fresh event loop to avoid cross-test stale loop issues."""
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
 
 HTML_V1 = """
 <!DOCTYPE html>
@@ -38,7 +52,7 @@ class TestUpstreamMonitor(unittest.TestCase):
         self.monitor = UpstreamMonitorService()
         self.doc_id = "monitored_doc_01"
         self.ast_v1 = DocumentExtractor.build_docast(HTML_V1, doc_id=self.doc_id)
-        asyncio.run(store.save_ast(self.doc_id, self.ast_v1))
+        run(store.save_ast(self.doc_id, self.ast_v1))
 
     def test_unchanged_check(self):
         self.monitor.register_source(
@@ -47,14 +61,14 @@ class TestUpstreamMonitor(unittest.TestCase):
             content_hash="hash_v1",
         )
 
-        diff = asyncio.run(self.monitor.check_for_updates(doc_id=self.doc_id, force_html=HTML_V1))
+        diff = run(self.monitor.check_for_updates(doc_id=self.doc_id, force_html=HTML_V1))
         # Hash was forced so diff calculated against old_hash
         self.assertTrue(diff.has_changed)
         self.assertEqual(len(diff.added_headings), 0)
 
     def test_upstream_update_detects_new_sections_and_invalidates_progress(self):
         # Set user progress on this doc
-        asyncio.run(
+        run(
             store.update_user_progress(
                 user_token="user_mon",
                 doc_id=self.doc_id,
@@ -71,14 +85,14 @@ class TestUpstreamMonitor(unittest.TestCase):
         )
 
         # Check against HTML_V2 (which adds 'Breaking Changes & Migration')
-        diff = asyncio.run(self.monitor.check_for_updates(doc_id=self.doc_id, force_html=HTML_V2))
+        diff = run(self.monitor.check_for_updates(doc_id=self.doc_id, force_html=HTML_V2))
 
         self.assertTrue(diff.has_changed)
         self.assertIn("Breaking Changes & Migration", diff.added_headings)
         self.assertTrue(diff.stale_sections_invalidated >= 1)
 
         # Verify user profile now has stale_sections flagged
-        prof = asyncio.run(store.get_user_progress("user_mon", self.doc_id))
+        prof = run(store.get_user_progress("user_mon", self.doc_id))
         key = f"user_mon:{self.doc_id}"
         self.assertIn("Breaking Changes & Migration", store.user_progress[key]["stale_sections"])
 
