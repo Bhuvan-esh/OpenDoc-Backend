@@ -21,6 +21,11 @@ class DocumentCreateRequest(BaseModel):
         return v
 
 
+class DocumentPreviewRequest(BaseModel):
+    url: str = Field(..., description="Target documentation URL to preview")
+    target_language: str = Field("Kannada", description="Target language name or code")
+
+
 class DocumentCreateResponse(BaseModel):
     job_id: str
     doc_id: str

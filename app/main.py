@@ -58,3 +58,8 @@ async def root():
 @app.get("/healthz", tags=["Health & Info"])
 async def health_check():
     return {"status": "ok"}
+
+
+@app.get("/api/health", tags=["Health & Info"])
+async def api_health():
+    return {"status": "ok", "service": "OpenDocs Voice & Learning Engine Backend"}

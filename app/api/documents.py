@@ -17,6 +17,7 @@ from app.models.schemas import (
     DocumentContentResponse,
     DocumentCreateRequest,
     DocumentCreateResponse,
+    DocumentPreviewRequest,
 )
 from app.services.extract import DocumentExtractor
 from app.services.fetch_guard import FetchGuard
@@ -201,6 +202,25 @@ async def process_document_pipeline(job_id: str, doc_id: str, url: str, target_l
     except Exception as exc:
         await store.add_job_event(job_id, {"stage": "pipeline", "status": "error", "error": str(exc)})
         await store.save_document(doc_id, {"id": doc_id, "url": url, "status": "failed", "error": str(exc)})
+
+
+@router.post("/preview")
+async def preview_document(req: DocumentPreviewRequest):
+    """Validate and preview document URL for the frontend reader."""
+    try:
+        if not req.url.startswith("http://demo.local") and not req.url.startswith("mock://"):
+            FetchGuard.validate_url(req.url)
+        return {
+            "status": "success",
+            "message": "Document URL validated successfully.",
+            "url": req.url,
+            "target_language": req.target_language,
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "message": str(exc),
+        }
 
 
 @router.post("", response_model=DocumentCreateResponse, status_code=202)
